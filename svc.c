@@ -457,6 +457,8 @@ qbool SV_ConnectionlessPacket(void)
 			SVC_Ping();
 		else if (!strcmp(c, "pingstatus"))
 			SVC_QRY_PingStatus();
+		else if (!strncmp(c, "pingQ3",sizeof("pingQ3")-1))
+			SVC_QRY_PingQ3();
 		else if (!strcmp(c,"connect"))
 			SVC_DirectConnect();
 		else if (!strcmp(c,"getchallenge"))

@@ -6,11 +6,13 @@
 
 #define QW_SERVER_RATE (0.1) // seconds, accept fraction, how frequently sent ONE packet to some server, so 0.1 means one packet per 1/10 of second
 #define QW_SERVER_PING_QUERY "\xff\xff\xff\xffk\n"
+#define Q3_SERVER_PING_QUERY "TODO"
 #define QW_SERVER_MIN_PING_REQUEST_TIME 60 // seconds, minimal time interval allowed to sent ping, so we do not spam server too fast
 #define QW_SERVER_DEAD_TIME (60 * 60) // seconds, if we do not get reply from server in this time, guess server is DEAD
 
 
 #define QW_MASTER_QUERY "c\n"
+#define Q3_MASTER_QUERY "\377\377\377\377getservers 68 empty full\n"
 #define QW_MASTER_QUERY_TIME (60 * 30) // seconds, how frequently we query masters
 #define QW_MASTER_QUERY_TIME_SHORT 60 // seconds, how frequently we query master if we do not get reply from it yet
 #define QW_MASTERS_FORCE_RE_INIT (60 * 60 * 24) // seconds, force re-init masters time to time, so we add proper masters if there was some ip/dns changes
@@ -219,7 +221,7 @@ static void QRY_QueryMasters(void)
 
 		Sys_DPrintf("query master: %s\n", NET_AdrToString(&m->addr, buf, sizeof(buf)));
 		
-		NET_SendPacket(net_socket, sizeof(QW_MASTER_QUERY), QW_MASTER_QUERY, &m->addr);
+		NET_SendPacket(net_socket, sizeof(Q3_MASTER_QUERY), Q3_MASTER_QUERY, &m->addr);
 		m->next_query = current_time + QW_MASTER_QUERY_TIME_SHORT; // delay next query for some time
 	}
 }
@@ -263,6 +265,7 @@ qbool QRY_IsMasterReply(void)
 {
 	if (net_message.cursize < 6 || memcmp(net_message.data, "\xff\xff\xff\xff\x64\x0a", 6))
 		return false;
+	//Q3
 
 	return true;
 }
@@ -549,6 +552,21 @@ void SVC_QRY_PingStatus(void)
 	}
 
 	// send the datagram
+	NET_SendPacket(net_from_socket, buf.cursize, buf.data, &net_from);
+}
+
+void SVC_QRY_PingQ3(void)
+{
+	static sizebuf_t buf; // static  - so it not allocated each time
+	static byte		buf_data[MSG_BUF_SIZE]; // static  - so it not allocated each time
+
+	double			current = Sys_DoubleTime(); // we need double time for ping measurement
+	server_t		*sv;
+
+	SZ_InitEx(&buf, buf_data, sizeof(buf_data), true);
+
+	MSG_WriteLong(&buf, -1);	// -1 sequence means out of band
+	MSG_WriteChar(&buf, 'g');
 	NET_SendPacket(net_from_socket, buf.cursize, buf.data, &net_from);
 }
 

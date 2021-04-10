@@ -438,6 +438,7 @@ void				QRY_SV_PingReply();
 qbool				QRY_IsMasterReply(void);
 void				SVC_QRY_ParseMasterReply(void);
 void				SVC_QRY_PingStatus(void);
+void				SVC_QRY_PingQ3(void);
 
 //
 // huff.c
